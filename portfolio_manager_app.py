@@ -149,10 +149,12 @@ class PortfolioManagerApp(ctk.CTk):
 
         def flush() -> None:
             nonlocal current_lines, current_heading
-            if not current_heading and not current_lines:
+            meaningful_lines = [line for line in current_lines if line.strip()]
+            if not meaningful_lines:
+                current_lines = []
                 return
-            bullets = [line[2:].strip() for line in current_lines if line.strip().startswith("- ")]
-            body_lines = [line.strip() for line in current_lines if line.strip() and not line.strip().startswith("- ")]
+            bullets = [line.strip()[2:].strip() for line in meaningful_lines if line.strip().startswith("- ")]
+            body_lines = [line.strip() for line in meaningful_lines if not line.strip().startswith("- ")]
             sections.append(CaseStudySection(current_heading, " ".join(body_lines), bullets))
             current_lines = []
 
@@ -164,14 +166,14 @@ class PortfolioManagerApp(ctk.CTk):
             else:
                 current_lines.append(line)
         flush()
-        return [section for section in sections if section.heading or section.body or section.bullets]
+        return [section for section in sections if section.heading and (section.body or section.bullets)]
 
     def build_project(self) -> PortfolioProject:
         self.autofill_slug()
         tech_stack = [item.strip() for item in self.tech_stack_var.get().split(",") if item.strip()]
-        return PortfolioProject(
+        project = PortfolioProject(
             title=self.title_var.get().strip(),
-            slug=self.slug_var.get().strip(),
+            slug=self.slug_var.get().strip() or slugify(self.title_var.get()),
             category=self.category_var.get().strip(),
             status=self.status_var.get().strip(),
             description=self.description_text.get("1.0", "end").strip(),
@@ -180,6 +182,7 @@ class PortfolioManagerApp(ctk.CTk):
             tech_stack=tech_stack,
             sections=self.parse_sections(),
         )
+        return project
 
     def preview_json(self) -> None:
         project = self.build_project()
