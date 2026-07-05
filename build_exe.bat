@@ -21,7 +21,7 @@ pip install -r requirements.txt
 
 echo.
 echo Building EXE...
-pyinstaller --noconfirm --onefile --windowed --name "Topium Portfolio Manager" portfolio_manager_app.py
+python -m PyInstaller --noconfirm --onefile --windowed --collect-all customtkinter --name "Topium Portfolio Manager" portfolio_manager_app.py
 
 echo.
 echo Done.
