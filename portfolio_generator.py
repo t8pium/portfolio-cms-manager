@@ -82,6 +82,19 @@ def load_project_json(path: Path) -> PortfolioProject:
     return project_from_dict(json.loads(safe_read_text(path)))
 
 
+def validate_project(project: PortfolioProject) -> None:
+    missing = []
+    if not project.title.strip():
+        missing.append("title")
+    if not project.category.strip():
+        missing.append("category")
+    if not project.description.strip():
+        missing.append("description")
+    if missing:
+        raise ValueError(f"Missing required fields: {', '.join(missing)}")
+    project.slug = project.slug.strip() or slugify(project.title)
+
+
 def copy_cover(portfolio_root: Path, project: PortfolioProject) -> str:
     if not project.cover_image:
         return ""
@@ -217,6 +230,7 @@ def insert_or_replace_card(index_html: str, project: PortfolioProject, card_html
 
 
 def add_project_to_portfolio(portfolio_root: Path, project: PortfolioProject) -> dict[str, str]:
+    validate_project(project)
     portfolio_root = portfolio_root.resolve()
     index_path = portfolio_root / "index.html"
     if not index_path.exists():
